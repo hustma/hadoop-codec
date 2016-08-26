@@ -1,0 +1,5 @@
+build:
+    script:
+       - pwd
+       - mvn test sonar:sonar
+       - mvn clean
