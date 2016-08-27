@@ -1,10 +1,9 @@
-package com.fxiaoke.dataplatform.benchmark;
+package com.fxiaoke.dataplatform.benchmark.mapreduce;
 
 import com.fxiaoke.dataplatform.mapreduce.filter.RegexPathFilter;
 import com.hadoop.compression.lzo.LzopCodec;
 import com.hadoop.mapreduce.LzoTextInputFormat;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;

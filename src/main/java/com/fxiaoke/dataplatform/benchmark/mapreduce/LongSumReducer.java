@@ -1,4 +1,4 @@
-package com.fxiaoke.dataplatform.benchmark;
+package com.fxiaoke.dataplatform.benchmark.mapreduce;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
