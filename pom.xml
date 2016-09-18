@@ -107,29 +107,6 @@
                 </configuration>
             </plugin>
 
-            <!-- war打包插件, 设定war包名称不带版本号 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <warName>hadoop-codec</warName>
-                </configuration>
-            </plugin>
-
-            <!-- tomcat 插件 -->
-            <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <port>8080</port>
-                    <path>/hadoop-codec</path>
-                    <server>tomcat-development-server</server>
-                    <useTestClasspath>true</useTestClasspath>
-                </configuration>
-            </plugin>
-
             <!-- jacoco插件, 单元测试覆盖率检测, cobertura不支持jdk1.8 -->
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -157,73 +134,18 @@
                 </executions>
             </plugin>
 
-            <!-- enforcer插件, 设定环境与依赖的规则 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.2</version>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
                 <executions>
                     <execution>
-                        <id>enforce-banned-dependencies</id>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>enforce</goal>
+                            <goal>jar</goal>
                         </goals>
-                        <configuration>
-                            <rules>
-                                <requireMavenVersion>
-                                    <version>3.0.3</version>
-                                </requireMavenVersion>
-                                <requireJavaVersion>
-                                    <version>1.6</version>
-                                </requireJavaVersion>
-                                <bannedDependencies>
-                                    <searchTransitive>true</searchTransitive>
-                                    <!-- 避免引入过期的jar包 -->
-                                    <excludes>
-                                        <exclude>aspectj:aspectj*</exclude>
-                                        <exclude>org.springframework:2.*</exclude>
-                                        <exclude>org.springframework:3.0.*</exclude>
-                                    </excludes>
-                                </bannedDependencies>
-                            </rules>
-                            <fail>true</fail>
-                        </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- resource插件 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-            </plugin>
-
-            <!-- install插件 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>2.4</version>
-            </plugin>
-
-            <!-- clean插件 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>2.5</version>
-            </plugin>
-
-            <!-- dependency插件 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.6</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
             </plugin>
         </plugins>
     </build>
