@@ -62,7 +62,7 @@ public class LzoCompressMain extends Configured implements Tool {
     }
 
     //设置正则
-    conf.set("file.pattern", ".*\\.log");
+//    conf.set("file.pattern", ".*\\.log");
     // 递归查找
     conf.setBoolean("mapreduce.input.fileinputformat.input.dir.recursive", true);
 
@@ -97,6 +97,7 @@ public class LzoCompressMain extends Configured implements Tool {
     }
 
     // 创建lzo索引
+    LOGGER.info("Create lzo index...");
     DistributedLzoIndexer lzoIndexer = new DistributedLzoIndexer();
     lzoIndexer.setConf(conf);
     lzoIndexer.run(new String[]{outputPath});
