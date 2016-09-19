@@ -171,6 +171,12 @@ SET hive.exec.compress.output=true;
 SET mapred.output.compression.codec=com.hadoop.compression.lzo.LzopCodec;
 ```
 
+## hadoop压缩方案
+1. 单纯hdfs文件，推荐使用lzo格式，解压缩和压缩比都比较均衡，还可以直接使用hadoop fs -text xx.log 查看文件内容
+2. hive推荐使用ORCfile
+3. Hbase推荐使用snappy进行压缩
+4. spark sql和impala，推荐使用parquet
+
 ## 参考
 1. [Hadoop at Twitter (part 1): Splittable LZO Compression](http://blog.cloudera.com/blog/2009/11/hadoop-at-twitter-part-1-splittable-lzo-compression/)
 2. [Do we need to create an index file (with lzop) if compression type is RECORD instead of block?](http://stackoverflow.com/questions/23560281/do-we-need-to-create-an-index-file-with-lzop-if-compression-type-is-record-ins)
