@@ -4,6 +4,8 @@
 1. 使用lzo压缩指定输入目录下的日志到指定的输出路径，并创建索引。
 2. 可以指定日志pattern，如以`log`结尾的日志，patter为`*.log`。
 3. 对于输入目录，可以递归查找日志，通常可以按天或按月对冷数据进行压缩。
+4. 根据输入目录大小设定reduce数量，即指定输出文件个数。lzo压缩比大约能达到20%，所以设定每10G原始数据一个reduce，产生的lzo文件大约是2G。
+5. submit.sh中可以批量提交任务。
 
 ## 使用方法
 使用maven打包，提交任务。
@@ -12,9 +14,7 @@
 hadoop jar hadoop-codec-1.0.0-SNAPSHOT.jar com.fxiaoke.dataplatform.mapreduce.LzoCompressMain -Dfile.pattern=<FilePath> <InputPath> <OutputPath>"
 ```
 
-# Lzo介绍
-
-## 简述
+# LZO介绍和使用
 
 > LZO is a compression codec which gives better compression and decompression speed than gzip, and also the capability to split. LZO allows this because its composed of many smaller (~256K) blocks of compressed data, allowing jobs to be split along block boundaries, as opposed to gzip where the dictionary for the whole file is written at the top.
 
@@ -26,10 +26,11 @@ hadoop jar hadoop-codec-1.0.0-SNAPSHOT.jar com.fxiaoke.dataplatform.mapreduce.Lz
 
 > See [this cloudera blog post](http://blog.cloudera.com/blog/2009/11/hadoop-at-twitter-part-1-splittable-lzo-compression/) and [LzoIndexer](https://github.com/twitter/hadoop-lzo/blob/master/src/main/java/com/hadoop/compression/lzo/LzoIndexer.java) for more info.
 
-### 创建索引
+
+## 创建索引
 lzo格式默认是不支持splittable的，需要为其添加索引文件，才能支持多个map并行对lzo文件进行处理
 
-#### MapReduce输出时创建索引
+### MapReduce输出时创建索引
 
 1. 使用lzo索引生成器
 
@@ -47,7 +48,7 @@ lzo格式默认是不支持splittable的，需要为其添加索引文件，才�
     lzoIndexer.run(new String[]{outputPath});
     ```
 
-#### 对已经是lzo的文件建立索引
+### 对已经是lzo的文件建立索引
 
 ```bash
 ## 单机版
@@ -58,7 +59,7 @@ $ hadoop jar /opt/cloudera/parcels/GPLEXTRAS/lib/hadoop/lib/hadoop-lzo.jar com.h
 ```
 索引文件与源文件在相同目录下。
 
-### beachmark
+## beachmark
 使用MapReduce做wordcount
 
 |输入|输入大小|输出大小|cpu|memory|map耗时|reduce耗时|总耗时|
@@ -67,7 +68,8 @@ $ hadoop jar /opt/cloudera/parcels/GPLEXTRAS/lib/hadoop/lib/hadoop-lzo.jar com.h
 |Lzo|4.3G|3.1G|36|78G|1分55秒|6分11秒|8分10秒|
 |比率|6.14%|5.64%|18.95%|20.05%|92.74%|60.33%|65.86%|
 
-## java
+## 如何使用lzo
+### java
 
 ```java
 public static void compress(String codecClassName) throws Exception {
@@ -87,21 +89,21 @@ public static void compress(String codecClassName) throws Exception {
 }
 ```
 
-## MapRedurce
+### MapReduce
 
-### 读取lzo文件
+#### 读取lzo文件
 ```java
 job.setInputFormatClass(LzoTextInputFormat.class);
 ```
 
-### map中间结果使用lzo压缩
+#### map中间结果使用lzo压缩
 
 ```java
 conf.set("mapreduce.map.output.compress", "true");
 conf.set("mapreduce.map.output.compress.codec", "com.hadoop.compression.lzo.LzoCodec");
 ```
 
-### 输出lzo文件
+#### 输出lzo文件
 ```java
 FileOutputFormat.setCompressOutput(job, true);
 FileOutputFormat.setOutputCompressorClass(job, LzopCodec.class);
@@ -116,8 +118,8 @@ lzoIndexer.index(new Path(outputPath));
 // lzoIndexer.run(new String[]{outputPath});
 ```
 
-## Spark
-### 读取lzo文件
+### Spark
+#### 读取lzo文件
 可以直接读取lzo文件。
 
 ```scala
@@ -126,7 +128,7 @@ scala> val lzoWordCounts = lzoFile.flatMap(line => line.split(" ")).map(word => 
 scala> lzoWordCounts.collect()
 ```
 
-### 输出lzo文件
+#### 输出lzo文件
 save时指定输出格式，`classOf[com.hadoop.compression.lzo.LzopCodec]`。
 
 ```scala
@@ -134,38 +136,40 @@ val textFile = sc.textFile("/xxx/in")
 textFile.saveAsTextFile("/xxx/out/", classOf[com.hadoop.compression.lzo.LzopCodec])
 ```
 
-## Hive
+### Hive
 
-1. 创建表时指定为lzo格式
+#### 创建表时指定为lzo存储格式
 
-    ```sql
-    CREATE EXTERNAL TABLE foo (
-         columnA string,
-         columnB string
-    ) PARTITIONED BY (date string)
-    ROW FORMAT DELIMITED
-    FIELDS TERMINATED BY "\t"
-    STORED AS
-    INPUTFORMAT "com.hadoop.mapred.DeprecatedLzoTextInputFormat"
-    OUTPUTFORMAT "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
-    LOCATION '/path/to/hive/tables/foo';
-    ```
+```sql
+CREATE EXTERNAL TABLE foo (
+     columnA string,
+     columnB string
+) PARTITIONED BY (date string)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY "\t"
+STORED AS
+INPUTFORMAT "com.hadoop.mapred.DeprecatedLzoTextInputFormat"
+OUTPUTFORMAT "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+LOCATION '/path/to/hive/tables/foo';
+```
 
-2. 对于已经创建好的表，使用alter语句，将其修改为lzo存储格式
+#### 修改表为lzo存储格式
+对于已经创建好的表，使用alter语句，将其修改为lzo存储格式
 
-    ```sql
-    ALTER TABLE foo
-    SET FILEFORMAT
-    INPUTFORMAT "com.hadoop.mapred.DeprecatedLzoTextInputFormat"
-    OUTPUTFORMAT "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat";
-    ```
+```sql
+ALTER TABLE foo
+SET FILEFORMAT
+INPUTFORMAT "com.hadoop.mapred.DeprecatedLzoTextInputFormat"
+OUTPUTFORMAT "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat";
+```
 
-3. 插入数据时，需要添加下面两个参数
+#### 插入数据
+需要添加下面两个参数
 
-    ```sql
-    SET hive.exec.compress.output=true;
-    SET mapred.output.compression.codec=com.hadoop.compression.lzo.LzopCodec;
-    ```
+```sql
+SET hive.exec.compress.output=true;
+SET mapred.output.compression.codec=com.hadoop.compression.lzo.LzopCodec;
+```
 
 ## 参考
 1. [Hadoop at Twitter (part 1): Splittable LZO Compression](http://blog.cloudera.com/blog/2009/11/hadoop-at-twitter-part-1-splittable-lzo-compression/)
