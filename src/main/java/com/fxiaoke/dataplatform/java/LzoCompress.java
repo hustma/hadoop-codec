@@ -1,4 +1,4 @@
-package com.fxiaoke.dataplatform.lzo;
+package com.fxiaoke.dataplatform.java;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -15,7 +15,7 @@ import org.apache.hadoop.util.ReflectionUtils;
  * LzoCodec
  * Created by wangzk on 16/8/25.
  */
-public class LzoCodec {
+public class LzoCompress {
 
   public static void compress(Configuration conf, String inPath, String outPath, Class codecClass) throws Exception {
 //    Class<?> codecClass = Class.forName(codecClassName);

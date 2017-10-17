@@ -1,4 +1,4 @@
-package com.fxiaoke.dataplatform.lzo;
+package com.fxiaoke.dataplatform.java;
 
 import com.github.autoconf.ConfigFactory;
 
